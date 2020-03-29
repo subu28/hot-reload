@@ -1,0 +1,24 @@
+{
+  "name": "hot-reload",
+  "version": "1.0.0",
+  "description": "a minimal http file server to develop tiny web apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subu28/hot-reload.git"
+  },
+  "author": "Subhash",
+  "license": "https://unlicense.org",
+  "bugs": {
+    "url": "https://github.com/subu28/hot-reload/issues"
+  },
+  "homepage": "https://github.com/subu28/hot-reload#readme",
+  "dependencies": {
+    "chokidar": "^3.3.1",
+    "express": "^4.17.1",
+    "express-ws": "^4.0.0"
+  }
+}
