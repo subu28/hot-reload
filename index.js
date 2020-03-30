@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 "use strict";
 const express = require('express');
 const ws = require('express-ws');
@@ -52,14 +54,20 @@ app.use('/', express.static(`${__dirname}/${watchDir}`));
 // stary the server
 app.listen(port);
 
+console.log(`Starting watch on ${__dirname}/${watchDir}`);
+console.log(`open http://localhost:${port} in your browser`);
+
 const watcher = chokidar.watch(`${__dirname}/${watchDir}`, {
   ignored: /(^|[\/\\])\../, // ignore dotfiles
   persistent: true
 })
 
-watcher.on('all', () => {
-  console.log('reloading clients');
-  wsInstance.getWss().clients.forEach(socket => {
-    socket.send('reload');
-  })
+watcher.on('all', (e) => {
+  const clients = wsInstance.getWss().clients;
+  if (clients.size) {
+    console.log('reloading project');
+    clients.forEach(socket => {
+      socket.send('reload');
+    });
+  }
 })
