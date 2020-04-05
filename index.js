@@ -35,23 +35,37 @@ app.ws('/hot-reload', (socket, req) => {
 
 // create websocket script
 app.get('/hot-reload.js', (req, res) => {
-  res.header('Content-Type', 'application/javascript').send(`
-    "use-strict";
-    let websocket = new WebSocket("ws://" + document.location.host + "/hot-reload");
-
-    websocket.onmessage = function(e) {
-      if (e.data === 'reload') {
-        websocket.close();
-        document.location.reload();
+  res.header('Content-Type', 'application/javascript').send(`(
+    function() {
+      "use-strict";
+      if (document.hot_reload === true) {
+        return;
       }
-    };
-  `);
-})
+      document.hot_reload = true;
+      let websocket = new WebSocket("ws://" + document.location.host + "/hot-reload");
 
-// inject script to setup websocket
-app.get(`/`, (req, res) => {
-  let index = fs.readFileSync(`${watchDir}/index.html`, { encoding: 'utf8'});
-  res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
+      websocket.onmessage = function(e) {
+        if (e.data === 'reload') {
+          websocket.close();
+          document.location.reload();
+        }
+      };
+    }
+  )();`);
+});
+
+// middleware to inject script to all index and html files
+app.use(`/`, (req, res, next) => {
+  if (req.path.endsWith('.html')) {
+    let index = fs.readFileSync(`${watchDir}/${req.path}`, { encoding: 'utf8'});
+    res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
+  }
+  else if (req.path.endsWith('/')) {
+    let index = fs.readFileSync(`${watchDir}${req.path}index.html`, { encoding: 'utf8'});
+    res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
+  } else {
+    next();
+  }
 })
 
 // pass through remaining files untouched
