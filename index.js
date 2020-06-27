@@ -21,6 +21,10 @@ let tryIndex = true;
 if (process.argv.indexOf('--try-index') !== -1) {
   tryIndex = process.argv[process.argv.indexOf('--try-index') + 1].toLowerCase() === 'true';
 }
+let debounce = 100;
+if (process.argv.indexOf('--debounce') !== -1) {
+  debounce = parseInt(process.argv[process.argv.indexOf('--debounce') + 1]);
+}
 
 // further process the path based on cwd
 if (!path.isAbsolute(watchDir)) {
@@ -95,12 +99,17 @@ const watcher = chokidar.watch(`${watchDir}`, {
   persistent: true
 })
 
+let timeout;
+
 watcher.on('all', (e) => {
-  const clients = wsInstance.getWss().clients;
-  if (clients.size) {
-    console.log('reloading project');
-    clients.forEach(socket => {
-      socket.send('reload');
-    });
-  }
-})
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    const clients = wsInstance.getWss().clients;
+    if (clients.size) {
+      console.log('reloading project');
+      clients.forEach(socket => {
+        socket.send('reload');
+      });
+    }
+  }, debounce);
+});
