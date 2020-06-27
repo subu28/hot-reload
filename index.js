@@ -6,6 +6,7 @@ const ws = require('express-ws');
 const fs = require('fs');
 const chokidar = require('chokidar');
 const path = require('path');
+const dirView = require('./dirView');
 
 // read the args
 let port = 8088;
@@ -16,8 +17,12 @@ let watchDir = process.cwd();
 if (process.argv.indexOf('--watch-dir') !== -1) {
   watchDir = process.argv[process.argv.indexOf('--watch-dir') + 1];
 }
+let tryIndex = true;
+if (process.argv.indexOf('--try-index') !== -1) {
+  tryIndex = process.argv[process.argv.indexOf('--try-index') + 1].toLowerCase() === 'true';
+}
 
-// fruther process the path based on cwd
+// further process the path based on cwd
 if (!path.isAbsolute(watchDir)) {
   watchDir = path.join(watchDir);
 }
@@ -61,8 +66,16 @@ app.use(`/`, (req, res, next) => {
     res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
   }
   else if (req.path.endsWith('/')) {
-    let index = fs.readFileSync(`${watchDir}${req.path}index.html`, { encoding: 'utf8'});
-    res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
+    if (tryIndex === true) {
+      try {
+        let index = fs.readFileSync(`${watchDir}${req.path}index.html`, { encoding: 'utf8'});
+        res.send(index.replace('</html>', '<script type="text/javascript" src="/hot-reload.js"></script></html>'));
+      } catch (err) {
+        res.send(dirView(`${watchDir}${req.path}`, req.path));
+      }
+    } else {
+      res.send(dirView(`${watchDir}${req.path}`, req.path));
+    }
   } else {
     next();
   }
