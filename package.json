@@ -19,7 +19,7 @@
   "homepage": "https://github.com/subu28/hot-reload#readme",
   "dependencies": {
     "chokidar": "^3.3.1",
-    "express": "^4.20.0",
+    "express": "^5.0.0",
     "express-ws": "^4.0.0"
   }
 }
